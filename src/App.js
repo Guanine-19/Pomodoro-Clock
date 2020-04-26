@@ -33,14 +33,13 @@ function App() {
   const [running, setrunning] = useState(false);
   const [pause, setpause] = useState(true);
   const [breakLength, setbreakLength] = useState(5);
-  const [sessionLength, setsessionLength] = useState(1);
+  const [sessionLength, setsessionLength] = useState(25);
   const [timer, settimer] = useState(sessionLength);
   const [seconds, setseconds] = useState(0);
   const [label, setlabel] = useState("Session");
   const [usetimer, setusetimer] = useState(1);
 
   //METHODS
-
   const settimerdisplay = () => {
     !running && usetimer=== 2 && settimer(breakLength);
     !running && usetimer=== 1 && settimer(sessionLength);
@@ -53,12 +52,13 @@ function App() {
   }
 
   const switchtimer = () => {
+    clearTimeout();
     if(timer===0 && usetimer === 1){
-      settimer(breakLength) ; setusetimer(2) ; setlabel("Break");
+      settimer(breakLength-1) ; setusetimer(2) ; setlabel("Break");
     } else if (timer===0 && usetimer === 2){
-      settimer(sessionLength) ; setusetimer(1) ; setlabel("Session");
+      settimer(sessionLength-1) ; setusetimer(1) ; setlabel("Session");
     }
-    playBeep()
+    playBeep();
   }
 
   const reset = () => {
@@ -74,9 +74,9 @@ function App() {
 
   useEffect(() => {
     !running && setseconds(0);
-    running && !pause && seconds > 0 && setTimeout(()=> setseconds(seconds - 1) ,1000);
-    running && !pause && seconds <= 0 && setTimeout(()=> {settimer(timer - 1); setseconds(5)} ,1000);
-    timer === 0 && seconds === 0 && switchtimer();
+    running && timer>=0 && !pause && seconds <= 0 && setTimeout(()=> {settimer(timer - 1); setseconds(59)} ,1000);
+    running && timer>=0 && !pause && seconds > 0 && setTimeout(()=> setseconds(seconds - 1) ,1000);
+    timer <= 0 && seconds === 0 && setTimeout(()=> {switchtimer()}, 1000);
   }, [running, pause, seconds, usetimer]);
   
   return(
@@ -85,20 +85,20 @@ function App() {
         POMODORO CLOCK
         <p>Designed and Coded by: Guanine-19</p>
       </div>
-      <audio id="beep" src='src\beep.mp3'></audio>
+      <audio id="beep" type="audio/mp3" src='https://s3.amazonaws.com/freecodecamp/drums/Chord_3.mp3'></audio>
       <ClockButton title="Break Length" length={breakLength} method={setbreakLength} running={running} set={settimerdisplay} type="break" />
       <ClockButton title="Session Length" length={sessionLength} method={setsessionLength} running={running} set={settimerdisplay} type="session" />    
       <div class="col-12 justify-content-center">
         {label==="Session" && <h3 id="timer-label" class="animated flipInX">{label}</h3>}
         {label==="Break" && <h3 id="timer-label" class="animated flipInX">{label}</h3>}
-        <h1>{("0" + timer).slice(-2)}:{("0" + seconds).slice(-2)}</h1>
+        <h1 id="time-left">{("0" + timer).slice(-2)}:{("0" + seconds).slice(-2)}</h1>
       </div>
       <div class="col-12 d-flex p-0 justify-content-center">
-        <div id="start_stop" class="clickable col-2 align-items-center" onClick={()=>setpause(!pause)}>
+        <div id="start_stop" class="clickable col-2 align-items-center" onClick={()=>{setpause(!pause);clearTimeout()}}>
           {!pause && <i class="animated flipInX fas fa-pause"></i>}
           {pause && <i class="animated flipInX fas fa-play"></i>}
         </div>
-        <div class="clickable col-3 align-items-center" onClick={()=>{setpause(!pause);setrunning(!running)}}>
+        <div class="clickable col-3 align-items-center" onClick={()=>{setpause(!pause);setrunning(!running);clearTimeout()}}>
           {!running && <h4 class="animated flipInX">START</h4>}
           {running && <h4 class="animated flipInX">STOP</h4>}
         </div>
